@@ -20,5 +20,10 @@ func routes() http.Handler {
 	mux.Post("/login", handlers.Repo.LoginPost)
 	mux.Post("/", handlers.Repo.LoginPost)
 
+	// transaction categories
+	mux.Get("/tcats", handlers.Repo.TransactionCategory)
+	mux.Get("/tcats/new", handlers.Repo.TransactionCategoryNew)
+	mux.Post("/tcats/new", handlers.Repo.PostTransactionCategoryNew)
+
 	return mux
 }
