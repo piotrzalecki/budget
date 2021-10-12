@@ -21,9 +21,12 @@ func routes() http.Handler {
 	mux.Post("/", handlers.Repo.LoginPost)
 
 	// transaction categories
-	mux.Get("/tcats", handlers.Repo.TransactionCategory)
-	mux.Get("/tcats/new", handlers.Repo.TransactionCategoryNew)
-	mux.Post("/tcats/new", handlers.Repo.PostTransactionCategoryNew)
+	mux.Get("/dashboard/tcats", handlers.Repo.TransactionCategory)
+	mux.Get("/dashboard/tcats/new", handlers.Repo.TransactionCategoryNew)
+	mux.Post("/dashboard/tcats/new", handlers.Repo.PostTransactionCategoryNew)
+	mux.Get("/dashboard/tcats/update", handlers.Repo.TransactionCategoryUpdateGet)
+	mux.Post("/dashboard/tcats/update", handlers.Repo.TransactionCategoryUpdatePost)
+	mux.Post("/dashboard/tcats/delete", handlers.Repo.TransactionCategoryDelete)
 
 	return mux
 }

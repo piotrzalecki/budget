@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/piotrzalecki/budget/internal/config"
 	"github.com/piotrzalecki/budget/internal/driver"
@@ -53,7 +54,7 @@ func (m *Repository) TransactionCategory(w http.ResponseWriter, r *http.Request)
 	if err != nil {
 		fmt.Println(err)
 		log.Fatal("can't retrieve transaction categories from database")
-		http.Redirect(w, r, "/tcats", http.StatusSeeOther)
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 		return
 	}
 
@@ -90,12 +91,10 @@ func (m *Repository) PostTransactionCategoryNew(w http.ResponseWriter, r *http.R
 	r.ParseForm()
 	name := r.Form.Get("name")
 	desc := r.Form.Get("desc")
-	fmt.Println(name)
-	fmt.Println(desc)
 
 	if name == "" || desc == "" {
 		log.Println("can't post for new transaction category, one of required fields is empty")
-		http.Redirect(w, r, "/tcats/new", http.StatusSeeOther)
+		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
 		return
 	}
 
@@ -108,10 +107,93 @@ func (m *Repository) PostTransactionCategoryNew(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		log.Println(fmt.Printf("creating category name: %s, description: %s FAILED", name, desc))
-		http.Redirect(w, r, "/tcats/new", http.StatusSeeOther)
+		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
 
 	}
 
-	http.Redirect(w, r, "/tcats", http.StatusSeeOther)
+	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+
+}
+
+func (m *Repository) TransactionCategoryDelete(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	catId := r.Form.Get("id")
+	catIdint, err := strconv.Atoi(catId)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve categroy id from uri")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+	err = m.DB.DeleteTransactionCategory(catIdint)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't delete category")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+}
+
+func (m *Repository) TransactionCategoryUpdateGet(w http.ResponseWriter, r *http.Request) {
+	idPara := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idPara)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve category id")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+
+	category, err := m.DB.GetTransactionCategoryById(id)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't get category from database")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+	data := make(map[string]interface{})
+	data["category"] = category
+
+	render.Template(w, r, "tcat_update.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+}
+
+func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	id := r.Form.Get("id")
+	name := r.Form.Get("name")
+	desc := r.Form.Get("desc")
+	if name == "" || desc == "" || id == "" {
+		log.Println("can't post for new transaction category, one of required fields is empty")
+		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
+		return
+	}
+
+	idInt, err := strconv.Atoi(id)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve category id")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+
+	var newcat models.TransactionCategory
+
+	newcat.Id = idInt
+	newcat.Name = name
+	newcat.Description = desc
+
+	err = m.DB.UpdateTransactionCategory(newcat)
+
+	if err != nil {
+		log.Println(fmt.Printf("updating category name: %s, description: %s FAILED", name, desc))
+		http.Redirect(w, r, "/dasboard/tcats", http.StatusSeeOther)
+		return
+	}
+
+	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 
 }
