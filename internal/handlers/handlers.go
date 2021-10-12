@@ -94,7 +94,7 @@ func (m *Repository) PostTransactionCategoryNew(w http.ResponseWriter, r *http.R
 
 	if name == "" || desc == "" {
 		log.Println("can't post for new transaction category, one of required fields is empty")
-		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
+		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
 		return
 	}
 
@@ -107,7 +107,7 @@ func (m *Repository) PostTransactionCategoryNew(w http.ResponseWriter, r *http.R
 
 	if err != nil {
 		log.Println(fmt.Printf("creating category name: %s, description: %s FAILED", name, desc))
-		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
+		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
 
 	}
 
@@ -168,7 +168,7 @@ func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *htt
 	desc := r.Form.Get("desc")
 	if name == "" || desc == "" || id == "" {
 		log.Println("can't post for new transaction category, one of required fields is empty")
-		http.Redirect(w, r, "/dasboard/tcats/new", http.StatusSeeOther)
+		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
 		return
 	}
 
@@ -190,7 +190,7 @@ func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *htt
 
 	if err != nil {
 		log.Println(fmt.Printf("updating category name: %s, description: %s FAILED", name, desc))
-		http.Redirect(w, r, "/dasboard/tcats", http.StatusSeeOther)
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 		return
 	}
 
