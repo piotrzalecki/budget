@@ -1,0 +1,11 @@
+create_table("transactions_data") {
+  t.Column("id", "integer", {primary: true})
+  t.Column("name", "string", {"size": 25})
+  t.Column("description", "string", {})
+  t.Column("transaction_quote", "float4", {})
+  t.Column("transaction_date", "date", {})
+  t.Column("transaction_type", "integer", {})
+  t.Column("transaction_category", "integer", {})
+  t.Column("transaction_recurence", "integer", {"default":0})
+  t.Column("repeat_until", "date", {"default":"1900-01-01"})
+}

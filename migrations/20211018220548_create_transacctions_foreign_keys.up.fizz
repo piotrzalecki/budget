@@ -1,0 +1,4 @@
+add_foreign_key("transactions_data", "transaction_type", {"transactions_types": ["id"]}, {})
+add_foreign_key("transactions_data", "transaction_category", {"transactions_categories": ["id"]}, {})
+add_foreign_key("transactions_data", "transaction_recurence", {"transactions_recurence": ["id"]}, {})
+add_foreign_key("transactions_logs", "transaction_data", {"transactions_data": ["id"]}, {})

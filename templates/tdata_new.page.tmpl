@@ -1,0 +1,41 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Add new category</h2>
+  <br>
+    <form method="post" action="/dashboard/tdata/new" novalidate>    
+      <div class="form-group mt-3">
+          <label for="td_name">Name</label>
+          <input  class="form-control"  id="td_name" autocomplete="off"
+                name='td_name' value="" required>
+      </div>
+
+      <div class="form-group mt-3" >
+          <label for="td_desc">Description</label>
+          <input class="form-control" 
+                  id="td_desc" autocomplete="off"
+                name='td_desc' value="" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_expected_quote">Name</label>
+          <input  class="form-control"  id="td_expected_quote" autocomplete="off"
+                name='td_expected_quote' value="" required>
+      </div>
+
+      <div class="form-group mt-3" >
+          <label for="td_expected_date">Description</label>
+          <input class="form-control" 
+                  id="td_expected_date" autocomplete="off"
+                name='td_expected_date' value="" required>
+      </div>
+      <hr>
+      <input type="submit" class="btn btn-primary" value="Submit">
+  </form>
+</main>
+
+
+
+{{end}}
+
+  

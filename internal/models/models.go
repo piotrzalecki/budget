@@ -13,3 +13,69 @@ type TransactionCategory struct {
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 }
+
+type TransactionRecurence struct {
+	Id          int
+	Name        string
+	Description string
+	AddTime     string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type TransactionType struct {
+	Id          int
+	Name        string
+	Description string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+type TransactionData struct {
+	Id                   int
+	Name                 string
+	Description          string
+	TransactionQuote     float32
+	TransactionDate      time.Time
+	TransactionType      TransactionType
+	TransactionCategory  TransactionCategory
+	TransactionRecurence TransactionRecurence
+	RepeatUntil          time.Time
+	CreatedAt            time.Time
+	UpdatedAt            time.Time
+}
+
+type TransactionLog struct {
+	Id               int
+	TransactionData  int
+	TransactionQuote float32
+	TransactionDate  time.Time
+	TransactionType  int
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	CreatedBy        int
+	UpdateBy         User
+}
+
+type User struct {
+	Id        int
+	Name      string
+	Email     string
+	Password  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type ActivityType struct {
+	Id        int
+	Name      string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type ActivityLog struct {
+	Id        int
+	Type      ActivityType
+	User      User
+	CreatedAt time.Time
+}

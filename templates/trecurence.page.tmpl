@@ -1,0 +1,51 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Recurent transactions</h2>
+  <br>
+  <a class="btn btn-primary" href="/dashboard/trecurence/new" role="button">Create</a>
+  <br>
+  <div class="table-responsive">
+  {{$rt := index .Data "trecurence"}}
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Add time</th>
+          <th scope="col"></th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+              {{range $rt}}
+        <tr>
+
+          <td>{{.Id}}</td>
+          <td>{{.Name}}</td>
+          <td>{{.Description}}</td>
+          <td>{{.AddTime}}</td>
+          <form method="get" action="/dashboard/trecurence/update" novalidate>
+          <input type="hidden" name="id" value="{{.Id}}">
+          <td>
+          <input type="submit" class="btn btn-sm btn-warning" value="update">
+          </td>
+          </form>
+          <form method="post" action="/dashboard/trecurence/delete" novalidate>
+          <input type="hidden" name="id" value="{{.Id}}">
+          <td><input type="submit" class="btn btn-sm btn-danger" value="delete"></td>
+          </form>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+
+
+{{end}}
+
+  

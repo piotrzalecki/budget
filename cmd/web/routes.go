@@ -27,6 +27,19 @@ func routes() http.Handler {
 	mux.Get("/dashboard/tcats/update", handlers.Repo.TransactionCategoryUpdateGet)
 	mux.Post("/dashboard/tcats/update", handlers.Repo.TransactionCategoryUpdatePost)
 	mux.Post("/dashboard/tcats/delete", handlers.Repo.TransactionCategoryDelete)
+	// transaction data
+	mux.Get("/dashboard/tdata", handlers.Repo.TransactionsData)
+	mux.Get("/dashboard/tdata/{id}", handlers.Repo.TransactionsDataDetails)
 
+	//Transactions recurence
+	mux.Get("/dashboard/trecurence", handlers.Repo.TransactionRecurence)
+	mux.Get("/dashboard/trecurence/new", handlers.Repo.TransactionRecurenceNew)
+	mux.Post("/dashboard/trecurence/new", handlers.Repo.PostTransactionRecurenceNew)
+	mux.Get("/dashboard/trecurence/update", handlers.Repo.TransactionRecurenceUpdateGet)
+	mux.Post("/dashboard/trecurence/update", handlers.Repo.TransactionRecurenceUpdatePost)
+	mux.Post("/dashboard/trecurence/delete", handlers.Repo.TransactionRecurenceDelete)
+
+	//Transaction types
+	mux.Get("/dashboard/ttypes", handlers.Repo.TransactionTypes)
 	return mux
 }

@@ -1,0 +1,8 @@
+create_table("transactions_logs") {
+  t.Column("id", "integer", {primary: true})
+  t.Column("transaction_data", "integer", {})
+  t.Column("transaction_quote", "float4", {})
+  t.Column("transaction_date", "date", {})
+  t.Column("created_by", "integer", {})
+  t.Column("updated_by", "integer", {})
+}

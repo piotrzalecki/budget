@@ -1,0 +1,46 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Transaction data</h2>
+  <br>
+  <a class="btn btn-primary" href="/dashboard/tcats/new" role="button">Create</a>
+  <br>
+  <div class="table-responsive">
+  {{$tdata := index .Data "tdata"}}
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+          <th scope="col">Expected quote</th>
+          <th scope="col">Type</th>
+          <th scope="col">Category</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+              {{range $tdata}}
+        <tr>
+
+          <td>{{.Id}}</td>
+          <td>{{.Name}}</td>
+          <td>{{.ExpectedQuote}}</td>
+          <td>{{.Description}}</td>
+          <td>{{.Type.Name}}</td>
+          <td>{{.Category.Name}}</td>
+          <td><a href="/dashboard/tdata/{{.Id}}" class="btn btn-sm btn-warning">DETAILS</a>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+  </div>
+</main>
+
+
+
+{{end}}
+
+  

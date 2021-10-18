@@ -1,0 +1,108 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  {{$tdata := index .Data "tdata"}}
+  <h2>Transaction details</h2>
+  <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{{$tdata.Name}}</td>
+          </tr>
+          <tr>
+            <td>Expected quote</td>
+            <td>{{$tdata.ExpectedQuote}}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{$tdata.Description}}</td>
+          </tr>
+          <tr>
+            <td>Type</td>
+            <td>{{$tdata.Type.Name}}</td>
+          </tr>
+          <tr>
+            <td>Category</td>
+            <td>{{$tdata.Category.Name}}</td>
+          </tr>
+          <tr>
+            <td>Created at</td>
+            <td>{{$tdata.CreatedAt}}</td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>{{$tdata.UpdatedAt}}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+  <h4>Transaction category details</h4>
+  <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{{$tdata.Category.Name}}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{$tdata.Category.Description}}</td>
+          </tr>
+          <tr>
+            <td>Created at</td>
+            <td>{{$tdata.Category.CreatedAt}}</td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>{{$tdata.Category.UpdatedAt}}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+    <h4>Transaction type details</h4>
+  <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{{$tdata.Type.Name}}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{$tdata.Type.Description}}</td>
+          </tr>
+          {{if gt $tdata.Type.Recurence 0 }}
+          <tr>
+            <td>Recurence</td>
+            <td>{{$tdata.Type.Description}}</td>
+          </tr>
+          {{end}}
+          <tr>
+            <td>Created at</td>
+            <td>{{$tdata.Type.CreatedAt}}</td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>{{$tdata.Type.UpdatedAt}}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+</main>
+
+
+
+{{end}}
+
+  
