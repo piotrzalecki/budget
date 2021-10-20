@@ -382,9 +382,9 @@ func (m *postgresDBRepo) CreateTransactionData(td models.TransactionData) (int, 
 		td.Description,
 		td.TransactionQuote,
 		td.TransactionDate,
-		td.TransactionType,
-		td.TransactionCategory,
-		td.TransactionRecurence,
+		td.TransactionType.Id,
+		td.TransactionCategory.Id,
+		td.TransactionRecurence.Id,
 		td.RepeatUntil,
 		time.Now(),
 		time.Now(),
@@ -401,7 +401,13 @@ func (m *postgresDBRepo) AllTransactionsData() ([]models.TransactionData, error)
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := "SELECT name, description, transaction_quote, transaction_date, transaction_type, transaction_category, transaction_recurence, repeat_until, created_at, updated_at FROM transactions_data ORDER BY name ASC"
+	query := `SELECT td.id, td.name, td.transaction_quote, td.transaction_date, td.repeat_until,
+	tc.name, tt.name, tr.name
+	FROM transactions_data td 
+	LEFT JOIN transactions_categories tc ON (td.transaction_category = tc.id)
+	LEFT JOIN transactions_types tt ON (td.transaction_type = tt.id)
+	LEFT JOIN transactions_recurence tr ON (td.transaction_recurence = tr.id)
+	ORDER BY td.transaction_date ASC`
 
 	rows, err := m.DB.QueryContext(ctx, query)
 	if err != nil {
@@ -414,16 +420,14 @@ func (m *postgresDBRepo) AllTransactionsData() ([]models.TransactionData, error)
 	for rows.Next() {
 		var i models.TransactionData
 		err := rows.Scan(
+			&i.Id,
 			&i.Name,
-			&i.Description,
 			&i.TransactionQuote,
 			&i.TransactionDate,
-			&i.TransactionType,
-			&i.TransactionCategory,
-			&i.TransactionRecurence,
 			&i.RepeatUntil,
-			&i.UpdatedAt,
-			&i.UpdatedAt,
+			&i.TransactionCategory.Name,
+			&i.TransactionType.Name,
+			&i.TransactionRecurence.Name,
 		)
 		if err != nil {
 			return nil, err
@@ -459,7 +463,15 @@ func (m *postgresDBRepo) GetTransactionDataById(id int) (models.TransactionData,
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	query := "SELECT id, name, description, transaction_quote, transaction_date, transaction_type, transaction_category, transaction_recurence, repeat_until, created_at, updated_at FROM transactions_data WHERE id=$1"
+	query := `SELECT td.id, td.name, td.description, td.transaction_quote, td.transaction_date, td.repeat_until, td.created_at, td.updated_at,
+	tc.id, tc.name, tc.description, tc.created_at, tc.updated_at,  tt.id, tt.name, tt.description,tt.created_at, tt.updated_at,
+	 tr.id, tr.name, tr.description, tr.addtime, tr.created_at, tr.updated_at
+	FROM transactions_data td
+	LEFT JOIN transactions_categories tc ON (td.transaction_category = tc.id)
+	LEFT JOIN transactions_types tt ON (td.transaction_type = tt.id)
+	LEFT JOIN transactions_recurence tr ON (td.transaction_recurence = tr.id)
+	WHERE td.id = $1
+	ORDER BY td.transaction_date ASC`
 
 	var td models.TransactionData
 
@@ -470,12 +482,25 @@ func (m *postgresDBRepo) GetTransactionDataById(id int) (models.TransactionData,
 		&td.Description,
 		&td.TransactionQuote,
 		&td.TransactionDate,
-		&td.TransactionType,
-		&td.TransactionCategory,
-		&td.TransactionRecurence,
 		&td.RepeatUntil,
 		&td.CreatedAt,
 		&td.UpdatedAt,
+		&td.TransactionCategory.Id,
+		&td.TransactionCategory.Name,
+		&td.TransactionCategory.Description,
+		&td.TransactionCategory.CreatedAt,
+		&td.TransactionCategory.UpdatedAt,
+		&td.TransactionType.Id,
+		&td.TransactionType.Name,
+		&td.TransactionType.Description,
+		&td.TransactionType.CreatedAt,
+		&td.TransactionType.UpdatedAt,
+		&td.TransactionRecurence.Id,
+		&td.TransactionRecurence.Name,
+		&td.TransactionRecurence.Description,
+		&td.TransactionRecurence.AddTime,
+		&td.TransactionRecurence.CreatedAt,
+		&td.TransactionRecurence.UpdatedAt,
 	)
 
 	if err != nil {
@@ -490,14 +515,15 @@ func (m *postgresDBRepo) UpdateTransactionsData(td models.TransactionData) error
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	stmt := "UPDATE transactions_data SET name=$1, description=$2, transaction_quote=$3, transaction_date=$4, transaction_type=$5, transaction_category=$6, repeat_until=$7, updated_at=$8 WHERE id=$9"
+	stmt := "UPDATE transactions_data SET name=$1, description=$2, transaction_quote=$3, transaction_date=$4, transaction_type=$5, transaction_category=$6, transaction_requrence=$7, repeat_until=$8, updated_at=$9 WHERE id=$10"
 	_, err := m.DB.ExecContext(ctx, stmt,
 		td.Name,
 		td.Description,
 		td.TransactionQuote,
 		td.TransactionDate,
-		td.TransactionType,
-		td.TransactionCategory,
+		td.TransactionType.Id,
+		td.TransactionCategory.Id,
+		td.TransactionRecurence.Id,
 		td.RepeatUntil,
 		time.Now(),
 		td.Id,

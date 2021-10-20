@@ -13,20 +13,20 @@
             <td>{{$tdata.Name}}</td>
           </tr>
           <tr>
-            <td>Expected quote</td>
-            <td>{{$tdata.ExpectedQuote}}</td>
-          </tr>
-          <tr>
             <td>Description</td>
             <td>{{$tdata.Description}}</td>
           </tr>
           <tr>
-            <td>Type</td>
-            <td>{{$tdata.Type.Name}}</td>
+            <td>Quote</td>
+            <td>{{$tdata.TransactionQuote}}</td>
           </tr>
           <tr>
-            <td>Category</td>
-            <td>{{$tdata.Category.Name}}</td>
+            <td>Date</td>
+            <td>{{$tdata.TransactionDate}}</td>
+          </tr>
+          <tr>
+            <td>Repeat Untill</td>
+            <td>{{$tdata.RepeatUntil}}</td>
           </tr>
           <tr>
             <td>Created at</td>
@@ -41,64 +41,89 @@
       </table>
     </div>
 
-  <h4>Transaction category details</h4>
+  <h4>Type</h4>
   <br>
     <div class="table-responsive">
       <table class="table table-striped table-sm">
         <tbody>
           <tr>
             <td>Name</td>
-            <td>{{$tdata.Category.Name}}</td>
+            <td>{{$tdata.TransactionType.Name}}</td>
           </tr>
           <tr>
             <td>Description</td>
-            <td>{{$tdata.Category.Description}}</td>
+            <td>{{$tdata.TransactionType.Description}}</td>
           </tr>
           <tr>
             <td>Created at</td>
-            <td>{{$tdata.Category.CreatedAt}}</td>
+            <td>{{$tdata.TransactionType.CreatedAt}}</td>
           </tr>
           <tr>
             <td>Updated at</td>
-            <td>{{$tdata.Category.UpdatedAt}}</td>
+            <td>{{$tdata.TransactionType.UpdatedAt}}</td>
           </tr>
-
         </tbody>
       </table>
     </div>
 
-    <h4>Transaction type details</h4>
+
+  <h4>Category</h4>
   <br>
     <div class="table-responsive">
       <table class="table table-striped table-sm">
         <tbody>
           <tr>
             <td>Name</td>
-            <td>{{$tdata.Type.Name}}</td>
+            <td>{{$tdata.TransactionCategory.Name}}</td>
           </tr>
           <tr>
             <td>Description</td>
-            <td>{{$tdata.Type.Description}}</td>
+            <td>{{$tdata.TransactionCategory.Description}}</td>
           </tr>
-          {{if gt $tdata.Type.Recurence 0 }}
-          <tr>
-            <td>Recurence</td>
-            <td>{{$tdata.Type.Description}}</td>
-          </tr>
-          {{end}}
           <tr>
             <td>Created at</td>
-            <td>{{$tdata.Type.CreatedAt}}</td>
+            <td>{{$tdata.TransactionCategory.CreatedAt}}</td>
           </tr>
           <tr>
             <td>Updated at</td>
-            <td>{{$tdata.Type.UpdatedAt}}</td>
+            <td>{{$tdata.TransactionCategory.UpdatedAt}}</td>
+          </tr>
+
+        </tbody>
+      </table>
+
+    </div>
+  {{if gt $tdata.TransactionRecurence.Id 1}}
+  <h4>Recurence</h4>
+  <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{{$tdata.TransactionRecurence.Name}}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{$tdata.TransactionRecurence.Description}}</td>
+          </tr>
+          <tr>
+            <td>Add time</td>
+            <td>{{$tdata.TransactionRecurence.AddTime}}</td>
+          </tr>
+          <tr>
+            <td>Created at</td>
+            <td>{{$tdata.TransactionRecurence.CreatedAt}}</td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>{{$tdata.TransactionRecurence.UpdatedAt}}</td>
           </tr>
 
         </tbody>
       </table>
     </div>
-
+  {{end}}
 </main>
 
 

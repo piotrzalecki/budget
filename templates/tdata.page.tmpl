@@ -4,7 +4,7 @@
 <main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
   <h2>Transaction data</h2>
   <br>
-  <a class="btn btn-primary" href="/dashboard/tcats/new" role="button">Create</a>
+  <a class="btn btn-primary" href="/dashboard/tdata/new" role="button">Create</a>
   <br>
   <div class="table-responsive">
   {{$tdata := index .Data "tdata"}}
@@ -13,11 +13,12 @@
         <tr>
           <th scope="col">#</th>
           <th scope="col">Name</th>
-          <th scope="col">Description</th>
-          <th scope="col">Expected quote</th>
+          <th scope="col">Quote</th>
+          <th scope="col">Date</th>
           <th scope="col">Type</th>
           <th scope="col">Category</th>
-          <th scope="col"></th>
+          <th scope="col">Recurence</th>
+          <th scope="col">Repeat Until</th>
         </tr>
       </thead>
       <tbody>
@@ -26,10 +27,12 @@
 
           <td>{{.Id}}</td>
           <td>{{.Name}}</td>
-          <td>{{.ExpectedQuote}}</td>
-          <td>{{.Description}}</td>
-          <td>{{.Type.Name}}</td>
-          <td>{{.Category.Name}}</td>
+          <td>{{.TransactionQuote}}</td>
+          <td>{{humanDate .TransactionDate}}</td>
+          <td>{{.TransactionType.Name}}</td>
+          <td>{{.TransactionCategory.Name}}</td>
+          <td>{{.TransactionRecurence.Name}}</td>
+          <td>{{humanDate .RepeatUntil}}</td>
           <td><a href="/dashboard/tdata/{{.Id}}" class="btn btn-sm btn-warning">DETAILS</a>
           </td>
         </tr>

@@ -30,6 +30,7 @@ func routes() http.Handler {
 	// transaction data
 	mux.Get("/dashboard/tdata", handlers.Repo.TransactionsData)
 	mux.Get("/dashboard/tdata/{id}", handlers.Repo.TransactionsDataDetails)
+	mux.Get("/dashboard/tdata/new", handlers.Repo.TransactionsDataNew)
 
 	//Transactions recurence
 	mux.Get("/dashboard/trecurence", handlers.Repo.TransactionRecurence)

@@ -7,6 +7,7 @@ import (
 	"html/template"
 	"net/http"
 	"path/filepath"
+	"time"
 
 	"github.com/piotrzalecki/budget/internal/config"
 	"github.com/piotrzalecki/budget/internal/models"
@@ -15,7 +16,13 @@ import (
 var app *config.AppConfig
 var pathToTemplates = "./templates"
 
-var functions = template.FuncMap{}
+var functions = template.FuncMap{
+	"humanDate": HumanDate,
+}
+
+func HumanDate(t time.Time) string {
+	return t.Format("2006-01-02")
+}
 
 func NewRenderer(a *config.AppConfig) {
 	app = a

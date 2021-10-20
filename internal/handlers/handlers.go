@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/piotrzalecki/budget/internal/config"
 	"github.com/piotrzalecki/budget/internal/driver"
 	"github.com/piotrzalecki/budget/internal/models"
@@ -199,119 +200,77 @@ func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *htt
 
 func (m *Repository) TransactionsData(w http.ResponseWriter, r *http.Request) {
 	// var tDataFormAll []models.TransactionData
-	// tDataAll, err := m.DB.AllTransactionsData()
-	// if err != nil {
-	// 	log.Println("Error retriving all transactions data", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
+	tDataAll, err := m.DB.AllTransactionsData()
+	if err != nil {
+		log.Println("Error retriving all transactions data", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
 
-	// for _, td := range tDataAll {
-	// 	tt, err := m.DB.GetTransactionTypeById(td.Type)
-	// 	if err != nil {
-	// 		log.Println("Error retriving transaction type by id", err)
-	// 		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	ttf := models.TransactionsTypesForm{
-	// 		Id:          tt.Id,
-	// 		Name:        tt.Name,
-	// 		Description: tt.Description,
-	// 		Recurence:   models.RecurentTransactions{},
-	// 		CreatedAt:   tt.CreatedAt,
-	// 		UpdatedAt:   tt.UpdatedAt,
-	// 	}
+	data := make(map[string]interface{})
+	data["tdata"] = tDataAll
 
-	// 	tc, err := m.DB.GetTransactionCategoryById(td.Category)
-	// 	if err != nil {
-	// 		log.Println("Error retriving transaction category by id", err)
-	// 		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 		return
-	// 	}
-	// 	tDataForm := models.TransactionsDataForm{
-	// 		Id:            td.Id,
-	// 		Name:          td.Name,
-	// 		Description:   td.Description,
-	// 		ExpectedQuote: td.ExpectedQuote,
-	// 		Type:          ttf,
-	// 		Category:      tc,
-	// 		CreatedAt:     td.CreatedAt,
-	// 		UpdatedAt:     td.UpdatedAt,
-	// 	}
-
-	// 	tDataFormAll = append(tDataFormAll, tDataForm)
-	// }
-
-	// data := make(map[string]interface{})
-	// data["tdata"] = tDataFormAll
-
-	// render.Template(w, r, "tdata.page.tmpl", &models.TemplateData{
-	// 	Data: data,
-	// })
+	render.Template(w, r, "tdata.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 
 }
 
 func (m *Repository) TransactionsDataDetails(w http.ResponseWriter, r *http.Request) {
-	// tid, err := strconv.Atoi(chi.URLParam(r, "id"))
-	// if err != nil {
-	// 	log.Println("Error retriving id from url", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
+	tid, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		log.Println("Error retriving id from url", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
 
-	// td, err := m.DB.GetTransactionDataById(tid)
-	// if err != nil {
-	// 	log.Println("Error retriving all transactions data", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
+	td, err := m.DB.GetTransactionDataById(tid)
+	if err != nil {
+		log.Println("Error retriving all transactions data", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
 
-	// tt, err := m.DB.GetTransactionTypeById(td.Type)
-	// if err != nil {
-	// 	log.Println("Error retriving transaction type by id", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
+	data := make(map[string]interface{})
+	data["tdata"] = td
+	fmt.Println(td)
+	render.Template(w, r, "tdata_details.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 
-	// rt, err := m.DB.GetRecurentTransactionById(tt.Recurence)
-	// if err != nil {
-	// 	log.Println("Error retriving recurent transactionby id", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
+}
 
-	// ttf := models.TransactionsTypesForm{
-	// 	Id:          tt.Id,
-	// 	Name:        tt.Name,
-	// 	Description: tt.Description,
-	// 	Recurence:   rt,
-	// 	CreatedAt:   tt.CreatedAt,
-	// 	UpdatedAt:   tt.UpdatedAt,
-	// }
+func (m *Repository) TransactionsDataNew(w http.ResponseWriter, r *http.Request) {
 
-	// tc, err := m.DB.GetTransactionCategoryById(td.Category)
-	// if err != nil {
-	// 	log.Println("Error retriving transaction category by id", err)
-	// 	http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-	// 	return
-	// }
-	// tDataForm := models.TransactionsDataForm{
-	// 	Id:            td.Id,
-	// 	Name:          td.Name,
-	// 	Description:   td.Description,
-	// 	ExpectedQuote: td.ExpectedQuote,
-	// 	Type:          ttf,
-	// 	Category:      tc,
-	// 	CreatedAt:     td.CreatedAt,
-	// 	UpdatedAt:     td.UpdatedAt,
-	// }
+	tt, err := m.DB.AllTransactionTypes()
+	if err != nil {
+		log.Println("Error retriving all transactions types", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
 
-	// data := make(map[string]interface{})
-	// data["tdata"] = tDataForm
+	tc, err := m.DB.AllTransactionCategories()
+	if err != nil {
+		log.Println("Error retriving all transactions categories", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
 
-	// render.Template(w, r, "tdata_details.page.tmpl", &models.TemplateData{
-	// 	Data: data,
-	// })
+	tr, err := m.DB.AllRecurentTransactions()
+	if err != nil {
+		log.Println("Error retriving all transactions recurences", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["ttypes"] = tt
+	data["tcats"] = tc
+	data["trec"] = tr
+
+	render.Template(w, r, "tdata_new.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
 
 }
 

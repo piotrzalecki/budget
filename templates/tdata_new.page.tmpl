@@ -18,17 +18,52 @@
                 name='td_desc' value="" required>
       </div>
       <div class="form-group mt-3">
-          <label for="td_expected_quote">Name</label>
-          <input  class="form-control"  id="td_expected_quote" autocomplete="off"
-                name='td_expected_quote' value="" required>
+          <label for="td_quote">Quote</label>
+          <input  class="form-control"  id="td_quote" autocomplete="off"
+                name='td_quote' value="" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_date">Date</label>
+          <input  class="form-control"  id="td_date" autocomplete="off"
+                name='td_date' value="" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_repeat">Repeat untill</label>
+          <input  class="form-control"  id="td_repeat" autocomplete="off"
+                name='td_repeat' value="" required>
       </div>
 
-      <div class="form-group mt-3" >
-          <label for="td_expected_date">Description</label>
-          <input class="form-control" 
-                  id="td_expected_date" autocomplete="off"
-                name='td_expected_date' value="" required>
+      {{$cats := index .Data "tcats"}}
+      <div class="form-group mt-3">
+          <label for="tc_id">Category</label>
+          <select class="custom-select d-block w-100" id="tc_id">
+          {{range $cats}}
+            <option value="{{.Id}}">{{.Name}} - {{.Description}}</option>
+          {{end}}
+          </select>
       </div>
+
+      {{$types := index .Data "ttypes"}}
+      <div class="form-group mt-3">
+          <label for="tt_id">Type</label>
+          <select class="custom-select d-block w-100" id="tt_id">
+          {{range $types}}
+            <option value="{{.Id}}">{{.Name}} - {{.Description}}</option>
+          {{end}}
+          </select>
+      </div>
+
+      {{$trec := index .Data "trec"}}
+      <div class="form-group mt-3">
+          <label for="tr_id">Recurence</label>
+          <select class="custom-select d-block w-100" id="tr_id">
+          {{range $trec}}
+            <option value="{{.Id}}">{{.Name}} - {{.AddTime}} </option>
+          {{end}}
+          </select>
+      </div>
+
+
       <hr>
       <input type="submit" class="btn btn-primary" value="Submit">
   </form>
