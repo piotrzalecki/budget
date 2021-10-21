@@ -1,0 +1,1 @@
+DELETE FROM transactions_recurence WHERE ID=1;
