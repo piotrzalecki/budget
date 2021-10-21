@@ -31,6 +31,10 @@ func routes() http.Handler {
 	mux.Get("/dashboard/tdata", handlers.Repo.TransactionsData)
 	mux.Get("/dashboard/tdata/{id}", handlers.Repo.TransactionsDataDetails)
 	mux.Get("/dashboard/tdata/new", handlers.Repo.TransactionsDataNew)
+	mux.Post("/dashboard/tdata/new", handlers.Repo.TransactionsDataNewPost)
+	mux.Post("/dashboard/tdata/delete", handlers.Repo.TransactionDataDelete)
+	mux.Post("/dashboard/tdata/update", handlers.Repo.TransactionDataUpdatePost)
+	mux.Get("/dashboard/tdata/update", handlers.Repo.TransactionDataUpdateGet)
 
 	//Transactions recurence
 	mux.Get("/dashboard/trecurence", handlers.Repo.TransactionRecurence)

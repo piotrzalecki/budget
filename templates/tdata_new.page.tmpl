@@ -36,7 +36,7 @@
       {{$cats := index .Data "tcats"}}
       <div class="form-group mt-3">
           <label for="tc_id">Category</label>
-          <select class="custom-select d-block w-100" id="tc_id">
+          <select class="custom-select d-block w-100" id="tc_id" name="tc_id">
           {{range $cats}}
             <option value="{{.Id}}">{{.Name}} - {{.Description}}</option>
           {{end}}
@@ -46,7 +46,7 @@
       {{$types := index .Data "ttypes"}}
       <div class="form-group mt-3">
           <label for="tt_id">Type</label>
-          <select class="custom-select d-block w-100" id="tt_id">
+          <select class="custom-select d-block w-100" id="tt_id" name="tt_id">
           {{range $types}}
             <option value="{{.Id}}">{{.Name}} - {{.Description}}</option>
           {{end}}
@@ -56,7 +56,7 @@
       {{$trec := index .Data "trec"}}
       <div class="form-group mt-3">
           <label for="tr_id">Recurence</label>
-          <select class="custom-select d-block w-100" id="tr_id">
+          <select class="custom-select d-block w-100" id="tr_id" name="tr_id">
           {{range $trec}}
             <option value="{{.Id}}">{{.Name}} - {{.AddTime}} </option>
           {{end}}

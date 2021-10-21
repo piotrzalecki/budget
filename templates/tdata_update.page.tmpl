@@ -1,0 +1,93 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Update transaction data</h2>
+  <br>
+  {{$tdata := index .Data "tdata"}}
+    <form method="post" action="/dashboard/tdata/update" novalidate> 
+    <input type="hidden" name="td_id" value="{{$tdata.Id}}">   
+      <div class="form-group mt-3">
+          <label for="td_name">Name</label>
+          <input  class="form-control"  id="td_name" autocomplete="off"
+                name='td_name' value="{{$tdata.Name}}" required>
+      </div>
+
+      <div class="form-group mt-3" >
+          <label for="td_desc">Description</label>
+          <input class="form-control" 
+                  id="td_desc" autocomplete="off"
+                name='td_desc' value="{{$tdata.Description}}" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_quote">Quote</label>
+          <input  class="form-control"  id="td_quote" autocomplete="off"
+                name='td_quote' value="{{$tdata.TransactionQuote}}" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_date">Date</label>
+          <input  class="form-control"  id="td_date" autocomplete="off"
+                name='td_date' value="{{humanDate $tdata.TransactionDate}}" required>
+      </div>
+      <div class="form-group mt-3">
+          <label for="td_repeat">Repeat untill</label>
+          <input  class="form-control"  id="td_repeat" autocomplete="off"
+                name='td_repeat' value="{{humanDate $tdata.RepeatUntil}}" required>
+      </div>
+
+      {{$cats := index .Data "tcats"}}
+      <div class="form-group mt-3">
+          <label for="tc_id">Category</label>
+          <select class="custom-select d-block w-100" id="tc_id" name="tc_id">
+          {{range $cats}}
+            <option value="{{.Id}}"
+            {{if eq .Id $tdata.TransactionCategory.Id}}
+            selected
+            {{end}}           
+            
+            >{{.Name}} - {{.Description}}</option>
+          {{end}}
+          </select>
+      </div>
+
+      {{$types := index .Data "ttypes"}}
+      <div class="form-group mt-3">
+          <label for="tt_id">Type</label>
+          <select class="custom-select d-block w-100" id="tt_id" name="tt_id">
+          {{range $types}}
+            <option value="{{.Id}}"
+            {{if eq .Id $tdata.TransactionType.Id}}
+            selected
+            {{end}}   
+            
+            
+            >{{.Name}} - {{.Description}}</option>
+          {{end}}
+          </select>
+      </div>
+
+      {{$trec := index .Data "trec"}}
+      <div class="form-group mt-3">
+          <label for="tr_id">Recurence</label>
+          <select class="custom-select d-block w-100" id="tr_id" name="tr_id">
+          {{range $trec}}
+            <option value="{{.Id}}"
+            {{if eq .Id $tdata.TransactionRecurence.Id}}
+            selected
+            {{end}} 
+            >{{.Name}} - {{.AddTime}} </option>
+          {{end}}
+          </select>
+      </div>
+
+
+      <hr>
+      <input type="submit" class="btn btn-primary" value="Submit">
+  </form>
+</main>
+
+
+
+{{end}}
+
+  

@@ -373,7 +373,7 @@ func (m *postgresDBRepo) CreateTransactionData(td models.TransactionData) (int, 
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	stmt := `INSERT INTO trnsactions_data (name, description, transaction_quote, transaction_date, transaction_type, transaction_category, transaction_recurence, repeat_until, created_at, updated_at) 
+	stmt := `INSERT INTO transactions_data (name, description, transaction_quote, transaction_date, transaction_type, transaction_category, transaction_recurence, repeat_until, created_at, updated_at) 
 			VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)  RETURNING id`
 
 	var id int
@@ -515,7 +515,7 @@ func (m *postgresDBRepo) UpdateTransactionsData(td models.TransactionData) error
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
-	stmt := "UPDATE transactions_data SET name=$1, description=$2, transaction_quote=$3, transaction_date=$4, transaction_type=$5, transaction_category=$6, transaction_requrence=$7, repeat_until=$8, updated_at=$9 WHERE id=$10"
+	stmt := "UPDATE transactions_data SET name=$1, description=$2, transaction_quote=$3, transaction_date=$4, transaction_type=$5, transaction_category=$6, transaction_recurence=$7, repeat_until=$8, updated_at=$9 WHERE id=$10"
 	_, err := m.DB.ExecContext(ctx, stmt,
 		td.Name,
 		td.Description,

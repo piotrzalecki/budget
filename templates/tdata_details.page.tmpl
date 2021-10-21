@@ -5,6 +5,12 @@
   {{$tdata := index .Data "tdata"}}
   <h2>Transaction details</h2>
   <br>
+  <form method="get" action="/dashboard/tdata/update" novalidate>
+  <input type="hidden" name="id" value="{{$tdata.Id}}">
+  <input type="submit" class="btn btn-sm btn-warning" value="update">
+
+  </form>
+    <br>
     <div class="table-responsive">
       <table class="table table-striped table-sm">
         <tbody>
@@ -122,8 +128,13 @@
 
         </tbody>
       </table>
+      {{end}}
+                <form method="post" action="/dashboard/tdata/delete" novalidate>
+      <input type="hidden" name="id" value="{{$tdata.Id}}">
+      <td><input type="submit" class="btn btn-sm btn-danger" value="delete"></td>
+    </form>
     </div>
-  {{end}}
+
 </main>
 
 
