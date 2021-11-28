@@ -2,8 +2,8 @@
 -- PostgreSQL database dump
 --
 
--- Dumped from database version 13.4 (Debian 13.4-1.pgdg100+1)
--- Dumped by pg_dump version 13.3
+-- Dumped from database version 14.0 (Debian 14.0-1.pgdg110+1)
+-- Dumped by pg_dump version 14.0
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -19,6 +19,43 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: account_balance; Type: TABLE; Schema: public; Owner: postgres
+--
+
+CREATE TABLE public.account_balance (
+    id integer NOT NULL,
+    balance real NOT NULL,
+    balance_transaction integer NOT NULL,
+    created_at timestamp without time zone NOT NULL,
+    updated_at timestamp without time zone NOT NULL
+);
+
+
+ALTER TABLE public.account_balance OWNER TO postgres;
+
+--
+-- Name: account_balance_id_seq; Type: SEQUENCE; Schema: public; Owner: postgres
+--
+
+CREATE SEQUENCE public.account_balance_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.account_balance_id_seq OWNER TO postgres;
+
+--
+-- Name: account_balance_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: postgres
+--
+
+ALTER SEQUENCE public.account_balance_id_seq OWNED BY public.account_balance.id;
+
 
 --
 -- Name: schema_migration; Type: TABLE; Schema: public; Owner: postgres
@@ -227,6 +264,13 @@ ALTER SEQUENCE public.transactions_types_id_seq OWNED BY public.transactions_typ
 
 
 --
+-- Name: account_balance id; Type: DEFAULT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.account_balance ALTER COLUMN id SET DEFAULT nextval('public.account_balance_id_seq'::regclass);
+
+
+--
 -- Name: transactions_categories id; Type: DEFAULT; Schema: public; Owner: postgres
 --
 
@@ -259,6 +303,14 @@ ALTER TABLE ONLY public.transactions_recurence ALTER COLUMN id SET DEFAULT nextv
 --
 
 ALTER TABLE ONLY public.transactions_types ALTER COLUMN id SET DEFAULT nextval('public.transactions_types_id_seq'::regclass);
+
+
+--
+-- Name: account_balance account_balance_pkey; Type: CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.account_balance
+    ADD CONSTRAINT account_balance_pkey PRIMARY KEY (id);
 
 
 --
@@ -306,6 +358,14 @@ ALTER TABLE ONLY public.transactions_types
 --
 
 CREATE UNIQUE INDEX schema_migration_version_idx ON public.schema_migration USING btree (version);
+
+
+--
+-- Name: account_balance account_balance_transactions_logs_id_fk; Type: FK CONSTRAINT; Schema: public; Owner: postgres
+--
+
+ALTER TABLE ONLY public.account_balance
+    ADD CONSTRAINT account_balance_transactions_logs_id_fk FOREIGN KEY (balance_transaction) REFERENCES public.transactions_logs(id);
 
 
 --

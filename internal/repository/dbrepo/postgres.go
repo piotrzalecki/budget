@@ -535,3 +535,349 @@ func (m *postgresDBRepo) UpdateTransactionsData(td models.TransactionData) error
 
 	return nil
 }
+
+// Timeline queries
+
+func (m *postgresDBRepo) GetAllActiveRecurentTransactions(to_date time.Time) ([]models.TransactionData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT td.id, td.name, td.transaction_quote, td.transaction_date, td.repeat_until,
+	tt.name, tr.addtime
+	FROM transactions_data td 
+	LEFT JOIN transactions_types tt ON (td.transaction_type = tt.id)
+	LEFT JOIN transactions_recurence tr ON (td.transaction_recurence = tr.id)
+	WHERE td.repeat_until > $1 AND tt.name='RT'
+	ORDER BY td.transaction_date ASC`
+
+	rows, err := m.DB.QueryContext(ctx, query, to_date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tds []models.TransactionData
+
+	for rows.Next() {
+		var i models.TransactionData
+		err := rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.TransactionQuote,
+			&i.TransactionDate,
+			&i.RepeatUntil,
+			&i.TransactionType.Name,
+			&i.TransactionRecurence.AddTime,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		tds = append(tds, i)
+	}
+
+	if err = rows.Err(); err != nil {
+		return tds, err
+	}
+
+	return tds, nil
+}
+
+func (m *postgresDBRepo) GetSingleTransactionsForDates(from_date, to_date time.Time) ([]models.TransactionData, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT td.id, td.name, td.transaction_quote, td.transaction_date, tt.name
+	FROM transactions_data td 
+	LEFT JOIN transactions_types tt ON (td.transaction_type = tt.id)
+	WHERE td.transaction_date > $1 AND td.transaction_date < $2 AND tt.name='ST'
+	ORDER BY td.transaction_date ASC`
+
+	rows, err := m.DB.QueryContext(ctx, query, from_date, to_date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tds []models.TransactionData
+
+	for rows.Next() {
+		var i models.TransactionData
+		err := rows.Scan(
+			&i.Id,
+			&i.Name,
+			&i.TransactionQuote,
+			&i.TransactionDate,
+			&i.TransactionType.Name,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		tds = append(tds, i)
+	}
+
+	if err = rows.Err(); err != nil {
+		return tds, err
+	}
+
+	return tds, nil
+}
+
+// Account Balance queries
+
+func (m *postgresDBRepo) GetLatestBalanceQuote() (float32, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT id, balance FROM account_balance ORDER BY id DESC LIMIT 1;`
+
+	var ab models.AccountBalance
+
+	row := m.DB.QueryRowContext(ctx, query)
+	err := row.Scan(
+		&ab.Id,
+		&ab.Balance,
+	)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return ab.Balance, nil
+
+}
+
+func (m *postgresDBRepo) CreateAccountBalance(ab models.AccountBalance) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `INSERT INTO account_balance (balance, balance_transaction, created_at, updated_at) 
+			VALUES ($1, $2, $3, $4)  RETURNING id`
+
+	var id int
+	err := m.DB.QueryRowContext(ctx, stmt,
+		ab.Balance,
+		ab.BalanceTransaction.Id,
+		time.Now(),
+		time.Now(),
+	).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+
+}
+
+// TRANSACTIONS LOG
+func (m *postgresDBRepo) CreateTransactionLog(tl models.TransactionLog) (int, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	stmt := `INSERT INTO transactions_logs (transaction_data, transaction_quote, transaction_date, created_at, updated_at, created_by, updated_by) 
+			VALUES ($1, $2, $3, $4, $5, $6, $7)  RETURNING id`
+
+	var id int
+	err := m.DB.QueryRowContext(ctx, stmt,
+		tl.TransactionData.Id,
+		tl.TransactionQuote,
+		tl.TransactionDate,
+		time.Now(),
+		time.Now(),
+		tl.CreatedBy.Id,
+		tl.UpdateBy.Id,
+	).Scan(&id)
+
+	if err != nil {
+		return 0, err
+	}
+
+	return id, nil
+}
+
+func (m *postgresDBRepo) AllTransactionsLogs() ([]models.TransactionLog, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT tl.id, tl.transaction_quote, tl.transaction_date, tl.created_at, tl.updated_at, tl.created_by, tl.updated_by
+	FROM transactions_logs tl
+	ORDER BY tl.transaction_date DESC LIMIT 50`
+
+	rows, err := m.DB.QueryContext(ctx, query)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tl []models.TransactionLog
+
+	for rows.Next() {
+		var i models.TransactionLog
+		err := rows.Scan(
+			&i.Id,
+			&i.TransactionQuote,
+			&i.TransactionDate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy.Id,
+			&i.UpdateBy.Id,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		tl = append(tl, i)
+	}
+
+	if err = rows.Err(); err != nil {
+		return tl, err
+	}
+
+	return tl, nil
+}
+
+func (m *postgresDBRepo) AllTransactionsLogsForDates(from_date, to_date time.Time) ([]models.TransactionLog, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT tl.id, tl.transaction_data, tl.transaction_quote, tl.transaction_date, tl.created_at, tl.updated_at, tl.created_by, tl.updated_by
+	FROM transactions_logs tl
+	WHERE tl.transaction_date > $1 AND tl.transaction_date < $2
+	ORDER BY tl.transaction_date DESC`
+
+	rows, err := m.DB.QueryContext(ctx, query, from_date, to_date)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var tl []models.TransactionLog
+
+	for rows.Next() {
+		var i models.TransactionLog
+		err := rows.Scan(
+			&i.Id,
+			&i.TransactionData.Id,
+			&i.TransactionQuote,
+			&i.TransactionDate,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.CreatedBy.Id,
+			&i.UpdateBy.Id,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		tl = append(tl, i)
+	}
+
+	if err = rows.Err(); err != nil {
+		return tl, err
+	}
+
+	return tl, nil
+}
+
+// func (m *postgresDBRepo) DeleteTransactionData(id int) error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+// 	defer cancel()
+
+// 	query := "DELETE FROM transactions_data WHERE id = $1"
+
+// 	_, err := m.DB.ExecContext(ctx, query, id)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+
+// }
+
+func (m *postgresDBRepo) GetTransactionLogById(id int) (models.TransactionLog, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT tl.id, tl.transaction_quote, tl.transaction_date, tl.created_at, tl.updated_at, tl.created_by, tl.updated_by
+	FROM transactions_logs tl 
+	WHERE tl.id= $1
+	ORDER BY tl.transaction_date ASC`
+
+	var i models.TransactionLog
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&i.Id,
+		&i.TransactionQuote,
+		&i.TransactionDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy.Id,
+		&i.UpdateBy.Id,
+	)
+
+	if err != nil {
+		return i, err
+	}
+
+	return i, nil
+
+}
+
+// func (m *postgresDBRepo) UpdateTransactionsData(td models.TransactionData) error {
+// 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+// 	defer cancel()
+
+// 	stmt := "UPDATE transactions_data SET name=$1, description=$2, transaction_quote=$3, transaction_date=$4, transaction_type=$5, transaction_category=$6, transaction_recurence=$7, repeat_until=$8, updated_at=$9 WHERE id=$10"
+// 	_, err := m.DB.ExecContext(ctx, stmt,
+// 		td.Name,
+// 		td.Description,
+// 		td.TransactionQuote,
+// 		td.TransactionDate,
+// 		td.TransactionType.Id,
+// 		td.TransactionCategory.Id,
+// 		td.TransactionRecurence.Id,
+// 		td.RepeatUntil,
+// 		time.Now(),
+// 		td.Id,
+// 	)
+
+// 	if err != nil {
+// 		return err
+// 	}
+
+// 	return nil
+// }
+
+func (m *postgresDBRepo) GetTransactionLogByTransactionDataIdFor(id int) (models.TransactionLog, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+
+	query := `SELECT tl.id, tl.transaction_quote, tl.transaction_date, tl.created_at, tl.updated_at, tl.created_by, tl.updated_by
+	FROM transactions_logs tl 
+	WHERE tl.transaction_data= $1
+	ORDER BY tl.transaction_date ASC`
+
+	var i models.TransactionLog
+
+	row := m.DB.QueryRowContext(ctx, query, id)
+	err := row.Scan(
+		&i.Id,
+		&i.TransactionQuote,
+		&i.TransactionDate,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.CreatedBy.Id,
+		&i.UpdateBy.Id,
+	)
+
+	if err != nil {
+		return i, err
+	}
+
+	return i, nil
+
+}

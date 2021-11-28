@@ -1,0 +1,42 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Transaction Log</h2>
+  <br>
+  <div class="table-responsive">
+  {{$tlog := index .Data "tlog"}}
+    <table class="table table-striped table-sm">
+      <thead>
+        <tr>
+          <th scope="col">#</th>
+          <th scope="col">Quote</th>
+          <th scope="col">Date</th>
+          <th scope="col">Name</th>
+          <th scope="col">Description</th>
+        </tr>
+      </thead>
+      <tbody>
+              {{range $tlog}}
+        <tr>
+
+          <td>{{.Id}}</td>
+          <td>{{.TransactionQuote}}</td>
+          <td>{{humanDate .TransactionDate}}</td>
+          <td>{{.TransactionData.Name}}</td>
+          <td>{{.TransactionData.Description}}</td>
+          <td><a href="/dashboard/tlog/{{.Id}}" class="btn btn-sm btn-warning">DETAILS</a>
+          </td>
+        </tr>
+        {{end}}
+      </tbody>
+    </table>
+
+  </div>
+</main>
+
+
+
+{{end}}
+
+  

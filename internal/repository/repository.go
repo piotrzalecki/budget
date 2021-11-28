@@ -1,6 +1,10 @@
 package repository
 
-import "github.com/piotrzalecki/budget/internal/models"
+import (
+	"time"
+
+	"github.com/piotrzalecki/budget/internal/models"
+)
 
 type DatabaseRepo interface {
 	CreateTransactionCategory(tcm models.TransactionCategory) (int, error)
@@ -23,4 +27,12 @@ type DatabaseRepo interface {
 	DeleteTransactionData(id int) error
 	GetTransactionDataById(id int) (models.TransactionData, error)
 	UpdateTransactionsData(td models.TransactionData) error
+	GetAllActiveRecurentTransactions(to_date time.Time) ([]models.TransactionData, error)
+	GetLatestBalanceQuote() (float32, error)
+	GetSingleTransactionsForDates(from_date, to_date time.Time) ([]models.TransactionData, error)
+	CreateTransactionLog(tl models.TransactionLog) (int, error)
+	AllTransactionsLogs() ([]models.TransactionLog, error)
+	GetTransactionLogById(id int) (models.TransactionLog, error)
+	CreateAccountBalance(ab models.AccountBalance) (int, error)
+	AllTransactionsLogsForDates(from_date, to_date time.Time) ([]models.TransactionLog, error)
 }

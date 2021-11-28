@@ -1,0 +1,60 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  {{$tlog := index .Data "tlog"}}
+  <h2>Transaction log details</h2>
+  <br>
+    <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>ID</td>
+            <td>{{$tlog.Id}}</td>
+          </tr>
+          <tr>
+            <td>Quote</td>
+            <td>{{$tlog.TransactionQuote}}</td>
+          </tr>
+          <tr>
+            <td>Date</td>
+            <td>{{ humanDate $tlog.TransactionDate}}</td>
+          </tr>
+          <tr>
+            <td>Created at</td>
+            <td>{{humanDate $tlog.CreatedAt}}</td>
+          </tr>
+          <tr>
+            <td>Updated at</td>
+            <td>{{humanDate $tlog.UpdatedAt}}</td>
+          </tr>
+
+        </tbody>
+      </table>
+    </div>
+
+  <h4>Transaction Data</h4>
+  <br>
+    <div class="table-responsive">
+      <table class="table table-striped table-sm">
+        <tbody>
+          <tr>
+            <td>Name</td>
+            <td>{{$tlog.TransactionData.Name}}</td>
+          </tr>
+          <tr>
+            <td>Description</td>
+            <td>{{$tlog.TransactionData.Description}}</td>
+          </tr>
+          <td><a href="/dashboard/tdata/{{$tlog.TransactionData.Id}}" class="btn btn-sm btn-warning">DETAILS</a>
+        </tbody>
+      </table>
+    </div>
+</main>
+
+
+
+{{end}}
+
+  

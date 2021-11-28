@@ -45,15 +45,16 @@ type TransactionData struct {
 	UpdatedAt            time.Time
 }
 
+type TransactionsData []TransactionData
+
 type TransactionLog struct {
 	Id               int
-	TransactionData  int
+	TransactionData  TransactionData
 	TransactionQuote float32
 	TransactionDate  time.Time
-	TransactionType  int
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	CreatedBy        int
+	CreatedBy        User
 	UpdateBy         User
 }
 
@@ -78,4 +79,12 @@ type ActivityLog struct {
 	Type      ActivityType
 	User      User
 	CreatedAt time.Time
+}
+
+type AccountBalance struct {
+	Id                 int
+	Balance            float32
+	BalanceTransaction TransactionLog
+	CreatedAt          time.Time
+	UpdatedAt          time.Time
 }

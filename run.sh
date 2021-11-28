@@ -2,7 +2,7 @@
 
 export DB_NAME=budget_dev
 export DB_USER=postgres
-export DB_PASSWORD=mysecretpassword
+export DB_PASSWORD=password
 
 
 

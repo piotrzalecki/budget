@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"sort"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -218,14 +220,14 @@ func (m *Repository) TransactionsData(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) TransactionsDataDetails(w http.ResponseWriter, r *http.Request) {
-	tid, err := strconv.Atoi(chi.URLParam(r, "id"))
+	tLid, err := strconv.Atoi(chi.URLParam(r, "id"))
 	if err != nil {
 		log.Println("Error retriving id from url", err)
 		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
 		return
 	}
 
-	td, err := m.DB.GetTransactionDataById(tid)
+	td, err := m.DB.GetTransactionDataById(tLid)
 	if err != nil {
 		log.Println("Error retriving all transactions data", err)
 		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
@@ -690,5 +692,330 @@ func (m *Repository) TransactionTypes(w http.ResponseWriter, r *http.Request) {
 	render.Template(w, r, "ttypes.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
+
+}
+
+func (m *Repository) FlowBoard(w http.ResponseWriter, r *http.Request) {
+
+	now := time.Now()
+	currentYear, currentMonth, _ := now.Date()
+	currentLocation := now.Location()
+
+	firstOfMonth := time.Date(currentYear, currentMonth, 1, 0, 0, 0, 0, currentLocation)
+	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
+
+	recTrans, err := m.DB.GetAllActiveRecurentTransactions(lastOfMonth)
+	if err != nil {
+		log.Println("Error retriving all transactions data", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	tDataAll := models.TransactionsData{}
+
+	for _, rt := range recTrans {
+		startDate := rt.TransactionDate
+		addTime := rt.TransactionRecurence.AddTime
+		yearAdd, err := strconv.Atoi(strings.Split(addTime, "-")[0])
+		if err != nil {
+			log.Println("Error rconverting str to int", err)
+			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+			return
+		}
+		yearMonth, err := strconv.Atoi(strings.Split(addTime, "-")[1])
+		if err != nil {
+			log.Println("Error rconverting str to int", err)
+			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+			return
+		}
+		yearDays, err := strconv.Atoi(strings.Split(addTime, "-")[2])
+		if err != nil {
+			log.Println("Error rconverting str to int", err)
+			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+			return
+		}
+
+		for {
+			if startDate.After(firstOfMonth) && startDate.Before(lastOfMonth) {
+				rt.TransactionDate = startDate
+				tDataAll = append(tDataAll, rt)
+			}
+			if startDate.After(lastOfMonth) {
+				break
+			}
+			startDate = startDate.AddDate(yearAdd, yearMonth, yearDays)
+		}
+	}
+
+	singleTransactions, err := m.DB.GetSingleTransactionsForDates(firstOfMonth, lastOfMonth)
+	if err != nil {
+		log.Println("Error retreiving single transactions", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+	for _, st := range singleTransactions {
+		tDataAll = append(tDataAll, st)
+	}
+
+	// //remove logged tranasctions
+	tranLogs, err := m.DB.AllTransactionsLogsForDates(firstOfMonth, lastOfMonth)
+	if err != nil {
+		log.Println("Error retriving transaction logs", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	// calculate expected occurnces for each transaction in transaction log
+	expectedTO := make(map[int]int) // [transaction id]number of cocrences
+
+	for _, tl := range tranLogs {
+		td, err := m.DB.GetTransactionDataById(tl.TransactionData.Id)
+		if err != nil {
+			log.Println("Error single transaction", err)
+			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+			return
+		}
+		if td.TransactionType.Name == "RT" {
+			transactionStartDate := td.TransactionDate
+			frequency := td.TransactionRecurence.AddTime
+			yearAdd, err := strconv.Atoi(strings.Split(frequency, "-")[0])
+			if err != nil {
+				log.Println("Error rconverting str to int", err)
+				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+				return
+			}
+			yearMonth, err := strconv.Atoi(strings.Split(frequency, "-")[1])
+			if err != nil {
+				log.Println("Error rconverting str to int", err)
+				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+				return
+			}
+			yearDays, err := strconv.Atoi(strings.Split(frequency, "-")[2])
+			if err != nil {
+				log.Println("Error rconverting str to int", err)
+				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+				return
+			}
+			counter := 0
+			for {
+				if transactionStartDate.After(firstOfMonth.AddDate(0, 0, -1)) && transactionStartDate.Before(lastOfMonth) {
+					counter += 1
+				}
+				transactionStartDate = transactionStartDate.AddDate(yearAdd, yearMonth, yearDays)
+				if transactionStartDate.After(lastOfMonth) {
+					break
+				}
+			}
+			expectedTO[td.Id] = counter
+		}
+	}
+
+	// cleaning logged transactions
+	for _, stl := range tranLogs {
+		fmt.Println(expectedTO)
+		remove := false
+		for i, sd := range tDataAll {
+			if stl.TransactionData.Id == sd.Id {
+				// remove logged single transactions
+				fmt.Println("----> matched", sd.Id, stl.Id)
+				if sd.TransactionType.Name == "ST" {
+					remove = true
+				}
+				// remove logged recurent trnsactions
+				if sd.TransactionType.Name == "RT" {
+					if expectedTO[sd.Id] > 0 {
+						fmt.Println("Decreasing one for", sd.Name)
+						expectedTO[sd.Id] -= 1
+						remove = true
+					}
+				}
+				if remove {
+					copy(tDataAll[i:], tDataAll[i+1:])
+					tDataAll[len(tDataAll)-1] = models.TransactionData{}
+					tDataAll = tDataAll[:len(tDataAll)-1]
+				}
+				break
+			}
+
+		}
+	}
+
+	balance, err := m.DB.GetLatestBalanceQuote()
+	if err != nil {
+		log.Println("Error retriving latest balance", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	for _, tr := range tDataAll {
+		balance += tr.TransactionQuote
+	}
+	sort.Sort(tDataAll)
+	data := make(map[string]interface{})
+	data["tdata"] = tDataAll
+	data["balance"] = balance
+
+	render.Template(w, r, "flowboard.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+}
+
+func (m *Repository) TransactionsLog(w http.ResponseWriter, r *http.Request) {
+	// var tDataFormAll []models.TransactionData
+	tLogAll, err := m.DB.AllTransactionsLogs()
+	if err != nil {
+		log.Println("Error retriving all transactions data", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["tlog"] = tLogAll
+
+	render.Template(w, r, "tlog.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+}
+
+func (m *Repository) TransactionsLogDetails(w http.ResponseWriter, r *http.Request) {
+	tLid, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		log.Println("Error retriving id from url", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	tl, err := m.DB.GetTransactionLogById(tLid)
+	if err != nil {
+		log.Println("Error retriving transaacion log by id", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	data := make(map[string]interface{})
+	data["tlog"] = tl
+	render.Template(w, r, "tlog_details.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+}
+
+func (m *Repository) TransactionsLogNew(w http.ResponseWriter, r *http.Request) {
+	idPara := r.URL.Query().Get("id")
+	id, err := strconv.Atoi(idPara)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve recurent transaction id")
+		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
+		return
+	}
+
+	tData, err := m.DB.GetTransactionDataById(id)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve recurent transaction id")
+		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
+		return
+	}
+	data := make(map[string]interface{})
+	data["tdata"] = tData
+
+	render.Template(w, r, "tlog_new.page.tmpl", &models.TemplateData{
+		Data: data,
+	})
+
+}
+
+func (m *Repository) TransactionsLogNewPost(w http.ResponseWriter, r *http.Request) {
+	r.ParseForm()
+	tid := r.Form.Get("tid")
+	tquote := r.Form.Get("tquote")
+	tdate := r.Form.Get("tdate")
+	uId := r.Form.Get("user_id")
+
+	if tid == "" || tquote == "" || tdate == "" || uId == "" {
+		log.Println("can't post for new transaction log, one of required fields is empty")
+		fmt.Println(tid)
+		fmt.Println(tquote)
+		fmt.Println(tdate)
+		fmt.Println(uId)
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+
+	transactionId, err := strconv.Atoi(tid)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve categroy id from uri")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+
+	userId, err := strconv.Atoi(uId)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve categroy id from uri")
+		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
+		return
+	}
+
+	layout := "2006-01-02"
+
+	parsedDate, err := time.Parse(layout, tdate)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't parse date ")
+		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
+		return
+	}
+
+	quoteFloat, err := strconv.ParseFloat(tquote, 32)
+	if err != nil {
+		fmt.Println(err)
+		log.Fatal("can't retrieve category id")
+		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
+		return
+	}
+
+	newlog := models.TransactionLog{
+		TransactionData:  models.TransactionData{Id: transactionId},
+		TransactionQuote: float32(quoteFloat),
+		TransactionDate:  parsedDate,
+		CreatedBy:        models.User{Id: userId},
+		UpdateBy:         models.User{Id: userId},
+	}
+
+	NewTLId, err := m.DB.CreateTransactionLog(newlog)
+
+	if err != nil {
+		log.Println(fmt.Printf("creating log for transaction id: %s, quote: %s FAILED", tid, tquote))
+		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
+
+	}
+
+	balance, err := m.DB.GetLatestBalanceQuote()
+	if err != nil {
+		log.Println("Error retriving latest balance", err)
+		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
+		return
+	}
+
+	newBalanceQuote := balance + float32(quoteFloat)
+
+	nab := models.AccountBalance{
+		Balance:            newBalanceQuote,
+		BalanceTransaction: models.TransactionLog{Id: NewTLId},
+	}
+
+	_, err = m.DB.CreateAccountBalance(nab)
+	if err != nil {
+		log.Println("Error updateing balance", err)
+		http.Redirect(w, r, "/flowboard", http.StatusInternalServerError)
+		return
+	}
+
+	http.Redirect(w, r, "/flowboard", http.StatusSeeOther)
 
 }

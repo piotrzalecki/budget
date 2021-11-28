@@ -13,14 +13,12 @@ func routes() http.Handler {
 	fileServer := http.FileServer(http.Dir("./static/"))
 	mux.Handle("/static/*", http.StripPrefix("/static", fileServer))
 
-	mux.Get("/dashboard", handlers.Repo.Home)
-
-	mux.Get("/login", handlers.Repo.Login)
-	mux.Get("/", handlers.Repo.Login)
-	mux.Post("/login", handlers.Repo.LoginPost)
-	mux.Post("/", handlers.Repo.LoginPost)
+	//Transactions Flow Page
+	mux.Get("/", handlers.Repo.FlowBoard)
+	mux.Get("/flowboard", handlers.Repo.FlowBoard)
 
 	// transaction categories
+	mux.Get("/dashboard", handlers.Repo.Home)
 	mux.Get("/dashboard/tcats", handlers.Repo.TransactionCategory)
 	mux.Get("/dashboard/tcats/new", handlers.Repo.TransactionCategoryNew)
 	mux.Post("/dashboard/tcats/new", handlers.Repo.PostTransactionCategoryNew)
@@ -46,5 +44,11 @@ func routes() http.Handler {
 
 	//Transaction types
 	mux.Get("/dashboard/ttypes", handlers.Repo.TransactionTypes)
+
+	//Transaction log
+	mux.Get("/dashboard/tlog", handlers.Repo.TransactionsLog)
+	mux.Get("/dashboard/tlog/{id}", handlers.Repo.TransactionsLogDetails)
+	mux.Get("/dashboard/tlog/new", handlers.Repo.TransactionsLogNew)
+	mux.Post("/dashboard/tlog/new", handlers.Repo.TransactionsLogNewPost)
 	return mux
 }

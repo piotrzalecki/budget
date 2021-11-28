@@ -1,0 +1,32 @@
+{{template "admin" .}}
+
+{{define "content"}}
+<main class="col-md-9 ms-sm-auto col-lg-10 px-md-4">
+  <h2>Log transaction</h2>
+  <br>
+  {{$tdata := index .Data "tdata"}}
+    <form method="post" action="/dashboard/tlog/new" novalidate>
+    <input type="hidden" name="tid" value="{{$tdata.Id}}">
+    <input type="hidden" name="user_id" value="0">
+      <div class="form-group mt-3">
+          <label for="tquote">Quote</label>
+          <input  class="form-control"  id="tquote" autocomplete="off"
+                name='tquote' value="{{$tdata.TransactionQuote}}" required>
+      </div>
+
+      <div class="form-group mt-3" >
+          <label for="tdate">Date</label>
+          <input class="form-control" 
+                  id="tdate" autocomplete="off"
+                name='tdate' value="" required>
+      </div>
+      <hr>
+      <input type="submit" class="btn btn-primary" value="Submit">
+  </form>
+</main>
+
+
+
+{{end}}
+
+  
