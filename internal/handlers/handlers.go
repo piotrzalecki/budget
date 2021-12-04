@@ -55,12 +55,7 @@ func (m *Repository) LoginPost(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) TransactionCategory(w http.ResponseWriter, r *http.Request) {
 
 	tcats, err := m.DB.AllTransactionCategories()
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve transaction categories from database")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, "can't retrieve all transaction categories from database", "/dashboard/tcats")
 
 	data := make(map[string]interface{})
 	data["tcats"] = tcats
@@ -107,13 +102,7 @@ func (m *Repository) PostTransactionCategoryNew(w http.ResponseWriter, r *http.R
 	newcat.Description = desc
 
 	_, err := m.DB.CreateTransactionCategory(newcat)
-
-	if err != nil {
-		log.Println(fmt.Printf("creating category name: %s, description: %s FAILED", name, desc))
-		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
-
-	}
-
+	handleError(w, r, err, fmt.Sprintf("creating transaction categoryof name %s failed", newcat.Name), "/dashboard/tcats/new")
 	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 
 }
@@ -122,39 +111,22 @@ func (m *Repository) TransactionCategoryDelete(w http.ResponseWriter, r *http.Re
 	r.ParseForm()
 	catId := r.Form.Get("id")
 	catIdint, err := strconv.Atoi(catId)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve categroy id from uri")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't retrieve category of id %s from uri", catId), "/dashboard/tcats")
+
 	err = m.DB.DeleteTransactionCategory(catIdint)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't delete category")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't delete category of id %d", catIdint), "/dashboard/tcats")
+
 	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 }
 
 func (m *Repository) TransactionCategoryUpdateGet(w http.ResponseWriter, r *http.Request) {
 	idPara := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idPara)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to intger", idPara), "/dashboard/tcats")
 
 	category, err := m.DB.GetTransactionCategoryById(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't get category from database")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't retriece category by id %d", id), "/dashboard/tcats")
+
 	data := make(map[string]interface{})
 	data["category"] = category
 
@@ -176,12 +148,7 @@ func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *htt
 	}
 
 	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("catn't convert %s to integer", id), "/dashboard/tcats")
 
 	var newcat models.TransactionCategory
 
@@ -190,26 +157,14 @@ func (m *Repository) TransactionCategoryUpdatePost(w http.ResponseWriter, r *htt
 	newcat.Description = desc
 
 	err = m.DB.UpdateTransactionCategory(newcat)
-
-	if err != nil {
-		log.Println(fmt.Printf("updating category name: %s, description: %s FAILED", name, desc))
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
-
+	handleError(w, r, err, fmt.Sprintf("updating category name: %s, description: %s failed", name, desc), "/dashboard/tcats")
 	http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
 
 }
 
 func (m *Repository) TransactionsData(w http.ResponseWriter, r *http.Request) {
-	// var tDataFormAll []models.TransactionData
 	tDataAll, err := m.DB.AllTransactionsData()
-	if err != nil {
-		log.Println("Error retriving all transactions data", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
-
+	handleError(w, r, err, "error retreiving all transactions data", "/dashboard")
 	data := make(map[string]interface{})
 	data["tdata"] = tDataAll
 
@@ -220,19 +175,12 @@ func (m *Repository) TransactionsData(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) TransactionsDataDetails(w http.ResponseWriter, r *http.Request) {
-	tLid, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		log.Println("Error retriving id from url", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	id := chi.URLParam(r, "id")
+	tLid, err := strconv.Atoi(id)
+	handleError(w, r, err, fmt.Sprintf("can't convrt %s to integer", id), "/dashboard/tdata")
 
 	td, err := m.DB.GetTransactionDataById(tLid)
-	if err != nil {
-		log.Println("Error retriving all transactions data", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("error retriving tranasction data with id %d", tLid), "/dashboard/tdata")
 
 	data := make(map[string]interface{})
 	data["tdata"] = td
@@ -245,25 +193,13 @@ func (m *Repository) TransactionsDataDetails(w http.ResponseWriter, r *http.Requ
 func (m *Repository) TransactionsDataNew(w http.ResponseWriter, r *http.Request) {
 
 	tt, err := m.DB.AllTransactionTypes()
-	if err != nil {
-		log.Println("Error retriving all transactions types", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "error retriving all transactions types", "/dashboard/tdata")
 
 	tc, err := m.DB.AllTransactionCategories()
-	if err != nil {
-		log.Println("Error retriving all transactions categories", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "error retriving all transactions categories", "/dashboard/tdata")
 
 	tr, err := m.DB.AllRecurentTransactions()
-	if err != nil {
-		log.Println("Error retriving all transactions recurences", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "error retriving all transactions recurences", "/dashboard/tdata")
 
 	data := make(map[string]interface{})
 	data["ttypes"] = tt
@@ -295,53 +231,24 @@ func (m *Repository) TransactionsDataNewPost(w http.ResponseWriter, r *http.Requ
 	}
 
 	quoteFloat, err := strconv.ParseFloat(quote, 32)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to float32", quote), "/dashboard/tdata")
 
 	layout := "2006-01-02"
 
 	parsedDate, err := time.Parse(layout, date)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't parse date ")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't parse date %s for layout %s", date, layout), "/dashboard/tdata")
+
 	parsedRepeatUntill, err := time.Parse(layout, repeatUntil)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't parse repeat until ")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't parse date %s for layout %s", repeatUntil, layout), "/dashboard/tdata")
 
 	categoryId, err := strconv.Atoi(category)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing category")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", category), "/dashboard/tdata")
 
 	typeId, err := strconv.Atoi(ttype)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing type")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", ttype), "/dashboard/tdata")
 
 	recurId, err := strconv.Atoi(rcur)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing recurence")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", rcur), "/dashboard/tdata")
 
 	transactionData := models.TransactionData{
 		Name:                 name,
@@ -355,13 +262,7 @@ func (m *Repository) TransactionsDataNewPost(w http.ResponseWriter, r *http.Requ
 	}
 
 	_, err = m.DB.CreateTransactionData(transactionData)
-	if err != nil {
-		log.Println(err)
-		log.Println(fmt.Printf("creating new transaction data failed name: %s FAILED", name))
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
-
+	handleError(w, r, err, fmt.Sprintf("error reating transaction data %v", transactionData), "/dashboard/tdata")
 	http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
 
 }
@@ -370,60 +271,29 @@ func (m *Repository) TransactionDataDelete(w http.ResponseWriter, r *http.Reques
 	r.ParseForm()
 	tdId := r.Form.Get("id")
 	tdIdParsed, err := strconv.Atoi(tdId)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't get transaction data id from uri")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", tdId), "/dashboard/tdata")
+
 	err = m.DB.DeleteTransactionData(tdIdParsed)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't delete rtransaction data")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't delete transaction data with id %d", tdIdParsed), "/dashboard/tdata")
 	http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
 }
 
 func (m *Repository) TransactionDataUpdateGet(w http.ResponseWriter, r *http.Request) {
 	idPara := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idPara)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve transaction data id")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", idPara), "/dashboard/tdata")
 
 	tdata, err := m.DB.GetTransactionDataById(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't get transaction data database")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't get transaction data by id %d", id), "/dashboard/tdata")
 
 	tt, err := m.DB.AllTransactionTypes()
-	if err != nil {
-		log.Println("Error retriving all transactions types", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't get all transactions types", "/dashboard/tdata")
 
 	tc, err := m.DB.AllTransactionCategories()
-	if err != nil {
-		log.Println("Error retriving all transactions categories", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't get all transactions categories", "/dashboard/tdata")
 
 	tr, err := m.DB.AllRecurentTransactions()
-	if err != nil {
-		log.Println("Error retriving all transactions recurences", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't get all recurnet transactions", "/dashboard/tdata")
 
 	data := make(map[string]interface{})
 	data["tdata"] = tdata
@@ -457,61 +327,26 @@ func (m *Repository) TransactionDataUpdatePost(w http.ResponseWriter, r *http.Re
 	}
 
 	quoteFloat, err := strconv.ParseFloat(quote, 32)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to float32", quote), "/dashboard/tdata")
 
 	layout := "2006-01-02"
-
 	parsedDate, err := time.Parse(layout, date)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't parse date ")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't parse %s for layout %s", date, layout), "/dashboard/tdata")
+
 	parsedRepeatUntill, err := time.Parse(layout, repeatUntil)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't parse repeat until ")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't parse %s for layout %s", repeatUntil, layout), "/dashboard/tdata")
 
 	categoryId, err := strconv.Atoi(category)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing category")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", category), "/dashboard/tdata")
 
 	typeId, err := strconv.Atoi(ttype)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing type")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", ttype), "/dashboard/tdata")
 
 	recurId, err := strconv.Atoi(rcur)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing recurence")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", rcur), "/dashboard/tdata")
 
 	tranId, err := strconv.Atoi(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("error parsing id")
-		http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", id), "/dashboard/tdata")
 
 	transactionData := models.TransactionData{
 		Id:                   tranId,
@@ -526,34 +361,22 @@ func (m *Repository) TransactionDataUpdatePost(w http.ResponseWriter, r *http.Re
 	}
 
 	err = m.DB.UpdateTransactionsData(transactionData)
-	if err != nil {
-		log.Println(err)
-		log.Println(fmt.Printf("updating transaction data failed name: %s FAILED", name))
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("updating transaction data failde for %v", transactionData), "/dashboard/tdata")
 
 	http.Redirect(w, r, "/dashboard/tdata", http.StatusSeeOther)
-
 }
 
 // Transaction Recurence
 func (m *Repository) TransactionRecurence(w http.ResponseWriter, r *http.Request) {
 
 	tr, err := m.DB.AllRecurentTransactions()
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve transaction categories from database")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, "can't retrieve all recurent transactions", "/dashboard/")
 
 	data := make(map[string]interface{})
 	data["trecurence"] = tr
 	render.Template(w, r, "trecurence.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
-
 }
 
 func (m *Repository) TransactionRecurenceNew(w http.ResponseWriter, r *http.Request) {
@@ -580,12 +403,7 @@ func (m *Repository) PostTransactionRecurenceNew(w http.ResponseWriter, r *http.
 	recurt.AddTime = addTime
 
 	_, err := m.DB.CreateRecurentTransaction(recurt)
-
-	if err != nil {
-		log.Println(fmt.Printf("creating recurent transaction name: %s FAILED\n %v", name, err))
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-
-	}
+	handleError(w, r, err, fmt.Sprintf("can't create recurent transaction %v", recurt), "/dashboard/trecurence")
 
 	http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
 
@@ -595,39 +413,22 @@ func (m *Repository) TransactionRecurenceDelete(w http.ResponseWriter, r *http.R
 	r.ParseForm()
 	rId := r.Form.Get("id")
 	recId, err := strconv.Atoi(rId)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't recurent transaction id from uri")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", rId), "/dashboard/trecurence")
+
 	err = m.DB.DeleteRecurentTransaction(recId)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't delete recurent transaction")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't delete recurent transaction with id %d", recId), "/dashboard/trecurence")
+
 	http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
 }
 
 func (m *Repository) TransactionRecurenceUpdateGet(w http.ResponseWriter, r *http.Request) {
 	idPara := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idPara)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve recurent transaction id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", idPara), "/dashboard/trecurence")
 
 	recurentt, err := m.DB.GetRecurentTransactionById(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't get category from database")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't retrieve recurent transaction with id %d", id), "/dashboard/trecurence")
+
 	data := make(map[string]interface{})
 	data["trecurence"] = recurentt
 
@@ -651,12 +452,7 @@ func (m *Repository) TransactionRecurenceUpdatePost(w http.ResponseWriter, r *ht
 	}
 
 	idInt, err := strconv.Atoi(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", id), "/dashboard/trecurence")
 
 	var recurt models.TransactionRecurence
 
@@ -666,12 +462,7 @@ func (m *Repository) TransactionRecurenceUpdatePost(w http.ResponseWriter, r *ht
 	recurt.AddTime = addTime
 
 	err = m.DB.UpdateRecurentTransaction(recurt)
-
-	if err != nil {
-		log.Println(fmt.Printf("updating recurent transaction name: %s FAILED", name))
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't update recurent transaction %v", recurt), "/dashboard/trecurence")
 
 	http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
 
@@ -680,12 +471,7 @@ func (m *Repository) TransactionRecurenceUpdatePost(w http.ResponseWriter, r *ht
 func (m *Repository) TransactionTypes(w http.ResponseWriter, r *http.Request) {
 
 	tt, err := m.DB.AllTransactionTypes()
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve transaction types from database")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, "can't retreive all transaction types", "/dashboard/trecurence")
 
 	data := make(map[string]interface{})
 	data["ttypes"] = tt
@@ -705,35 +491,23 @@ func (m *Repository) FlowBoard(w http.ResponseWriter, r *http.Request) {
 	lastOfMonth := firstOfMonth.AddDate(0, 1, -1)
 
 	recTrans, err := m.DB.GetAllActiveRecurentTransactions(lastOfMonth)
-	if err != nil {
-		log.Println("Error retriving all transactions data", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't retireve all active recurent tranasactions", "/dashboard")
 
 	tDataAll := models.TransactionsData{}
 
 	for _, rt := range recTrans {
 		startDate := rt.TransactionDate
 		addTime := rt.TransactionRecurence.AddTime
-		yearAdd, err := strconv.Atoi(strings.Split(addTime, "-")[0])
-		if err != nil {
-			log.Println("Error rconverting str to int", err)
-			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-			return
-		}
-		yearMonth, err := strconv.Atoi(strings.Split(addTime, "-")[1])
-		if err != nil {
-			log.Println("Error rconverting str to int", err)
-			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-			return
-		}
-		yearDays, err := strconv.Atoi(strings.Split(addTime, "-")[2])
-		if err != nil {
-			log.Println("Error rconverting str to int", err)
-			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-			return
-		}
+		addTimeArr := strings.Split(addTime, "-")
+
+		yearAdd, err := strconv.Atoi(addTimeArr[0])
+		handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", addTimeArr[0]), "/dashboard")
+
+		yearMonth, err := strconv.Atoi(addTimeArr[1])
+		handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", addTimeArr[1]), "/dashboard")
+
+		yearDays, err := strconv.Atoi(addTimeArr[2])
+		handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", addTimeArr[2]), "/dashboard")
 
 		for {
 			if startDate.After(firstOfMonth) && startDate.Before(lastOfMonth) {
@@ -748,54 +522,37 @@ func (m *Repository) FlowBoard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	singleTransactions, err := m.DB.GetSingleTransactionsForDates(firstOfMonth, lastOfMonth)
-	if err != nil {
-		log.Println("Error retreiving single transactions", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't get single transactions for dates %v and %v", firstOfMonth, lastOfMonth), "/dashboard")
+
 	for _, st := range singleTransactions {
 		tDataAll = append(tDataAll, st)
 	}
 
 	// //remove logged tranasctions
 	tranLogs, err := m.DB.AllTransactionsLogsForDates(firstOfMonth, lastOfMonth)
-	if err != nil {
-		log.Println("Error retriving transaction logs", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't get all transactions logs for dates %v and %v", firstOfMonth, lastOfMonth), "/dashboard")
 
 	// calculate expected occurnces for each transaction in transaction log
 	expectedTO := make(map[int]int) // [transaction id]number of cocrences
 
 	for _, tl := range tranLogs {
 		td, err := m.DB.GetTransactionDataById(tl.TransactionData.Id)
-		if err != nil {
-			log.Println("Error single transaction", err)
-			http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-			return
-		}
+		handleError(w, r, err, fmt.Sprintf("can't get tranasctions data by id %d", tl.TransactionData.Id), "/dashboard")
+
 		if td.TransactionType.Name == "RT" {
 			transactionStartDate := td.TransactionDate
 			frequency := td.TransactionRecurence.AddTime
-			yearAdd, err := strconv.Atoi(strings.Split(frequency, "-")[0])
-			if err != nil {
-				log.Println("Error rconverting str to int", err)
-				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-				return
-			}
-			yearMonth, err := strconv.Atoi(strings.Split(frequency, "-")[1])
-			if err != nil {
-				log.Println("Error rconverting str to int", err)
-				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-				return
-			}
-			yearDays, err := strconv.Atoi(strings.Split(frequency, "-")[2])
-			if err != nil {
-				log.Println("Error rconverting str to int", err)
-				http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-				return
-			}
+			frequencyArr := strings.Split(frequency, "-")
+
+			yearAdd, err := strconv.Atoi(frequencyArr[0])
+			handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", frequencyArr[0]), "/dashboard")
+
+			yearMonth, err := strconv.Atoi(frequencyArr[1])
+			handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", frequencyArr[1]), "/dashboard")
+
+			yearDays, err := strconv.Atoi(frequencyArr[2])
+			handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", frequencyArr[2]), "/dashboard")
+
 			counter := 0
 			for {
 				if transactionStartDate.After(firstOfMonth.AddDate(0, 0, -1)) && transactionStartDate.Before(lastOfMonth) {
@@ -841,11 +598,7 @@ func (m *Repository) FlowBoard(w http.ResponseWriter, r *http.Request) {
 	}
 
 	balance, err := m.DB.GetLatestBalanceQuote()
-	if err != nil {
-		log.Println("Error retriving latest balance", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't retrieve latest balance", "/dashboard")
 
 	for _, tr := range tDataAll {
 		balance += tr.TransactionQuote
@@ -864,11 +617,7 @@ func (m *Repository) FlowBoard(w http.ResponseWriter, r *http.Request) {
 func (m *Repository) TransactionsLog(w http.ResponseWriter, r *http.Request) {
 	// var tDataFormAll []models.TransactionData
 	tLogAll, err := m.DB.AllTransactionsLogs()
-	if err != nil {
-		log.Println("Error retriving all transactions data", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't retrieve all transactions data", "/dashboard")
 
 	data := make(map[string]interface{})
 	data["tlog"] = tLogAll
@@ -880,19 +629,13 @@ func (m *Repository) TransactionsLog(w http.ResponseWriter, r *http.Request) {
 }
 
 func (m *Repository) TransactionsLogDetails(w http.ResponseWriter, r *http.Request) {
-	tLid, err := strconv.Atoi(chi.URLParam(r, "id"))
-	if err != nil {
-		log.Println("Error retriving id from url", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	id := chi.URLParam(r, "id")
+	tLid, err := strconv.Atoi(id)
+
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", id), "/dashboard/tlog")
 
 	tl, err := m.DB.GetTransactionLogById(tLid)
-	if err != nil {
-		log.Println("Error retriving transaacion log by id", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't get transaction log by id %d", tLid), "/dashboard/tlog")
 
 	data := make(map[string]interface{})
 	data["tlog"] = tl
@@ -905,20 +648,11 @@ func (m *Repository) TransactionsLogDetails(w http.ResponseWriter, r *http.Reque
 func (m *Repository) TransactionsLogNew(w http.ResponseWriter, r *http.Request) {
 	idPara := r.URL.Query().Get("id")
 	id, err := strconv.Atoi(idPara)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve recurent transaction id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", idPara), "/dashboard/tlog")
 
 	tData, err := m.DB.GetTransactionDataById(id)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve recurent transaction id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't get transaction data by id %d", id), "/dashboard/tlog")
+
 	data := make(map[string]interface{})
 	data["tdata"] = tData
 
@@ -946,38 +680,18 @@ func (m *Repository) TransactionsLogNewPost(w http.ResponseWriter, r *http.Reque
 	}
 
 	transactionId, err := strconv.Atoi(tid)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve categroy id from uri")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", tid), "/dashboard/tlog")
 
 	userId, err := strconv.Atoi(uId)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve categroy id from uri")
-		http.Redirect(w, r, "/dashboard/tcats", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to integer", uId), "/dashboard/tlog")
 
 	layout := "2006-01-02"
 
 	parsedDate, err := time.Parse(layout, tdate)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't parse date ")
-		http.Redirect(w, r, "/dashboard", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't parse date %s for layout %s", tdate, layout), "/dashboard/tdata")
 
 	quoteFloat, err := strconv.ParseFloat(tquote, 32)
-	if err != nil {
-		fmt.Println(err)
-		log.Fatal("can't retrieve category id")
-		http.Redirect(w, r, "/dashboard/trecurence", http.StatusSeeOther)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't convert %s to float32", tquote), "/dashboard/tlog")
 
 	newlog := models.TransactionLog{
 		TransactionData:  models.TransactionData{Id: transactionId},
@@ -987,34 +701,21 @@ func (m *Repository) TransactionsLogNewPost(w http.ResponseWriter, r *http.Reque
 		UpdateBy:         models.User{Id: userId},
 	}
 
-	NewTLId, err := m.DB.CreateTransactionLog(newlog)
-
-	if err != nil {
-		log.Println(fmt.Printf("creating log for transaction id: %s, quote: %s FAILED", tid, tquote))
-		http.Redirect(w, r, "/dashboard/tcats/new", http.StatusSeeOther)
-
-	}
+	newTLId, err := m.DB.CreateTransactionLog(newlog)
+	handleError(w, r, err, fmt.Sprintf("can't create transaction log %v", newlog), "/dashboard/tlog")
 
 	balance, err := m.DB.GetLatestBalanceQuote()
-	if err != nil {
-		log.Println("Error retriving latest balance", err)
-		http.Redirect(w, r, "/dashboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, "can't retreive latest balance quote", "/dashboard/tlog")
 
 	newBalanceQuote := balance + float32(quoteFloat)
 
 	nab := models.AccountBalance{
 		Balance:            newBalanceQuote,
-		BalanceTransaction: models.TransactionLog{Id: NewTLId},
+		BalanceTransaction: models.TransactionLog{Id: newTLId},
 	}
 
 	_, err = m.DB.CreateAccountBalance(nab)
-	if err != nil {
-		log.Println("Error updateing balance", err)
-		http.Redirect(w, r, "/flowboard", http.StatusInternalServerError)
-		return
-	}
+	handleError(w, r, err, fmt.Sprintf("can't create account balance %v", nab), "/dashboard/tlog")
 
 	http.Redirect(w, r, "/flowboard", http.StatusSeeOther)
 

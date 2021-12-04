@@ -6,4 +6,4 @@ export DB_PASSWORD=password
 
 
 
-go build -o bookings ./cmd/web/*.go && ./bookings -dbname=bookings -dbuser=postgres -dbpass=mysecretpassword
+go build -o budget ./cmd/web/*.go && ./budget -dbname=bookings -dbuser=postgres -dbpass=mysecretpassword
